@@ -181,15 +181,18 @@ function drawPointButton() {
 	ctx.beginPath();
 	if (addPoints) {
 		ctx.fillStyle = "blue";
-		ctx.fillRect(10, 10, 120, 40);
+		ctx.fillRect(10, 10, 150, 40);
+		ctx.fillStyle = "white";
+		ctx.font = "24px 'Lato'";
+		ctx.fillText("Add Points ✓", 18, 40, 134);
 	}
 	else {
 		ctx.fillStyle = "red";
-		ctx.fillRect(10, 10, 120, 40);
+		ctx.fillRect(10, 10, 150, 40);
+		ctx.fillStyle = "white";
+		ctx.font = "24px 'Lato'";
+		ctx.fillText("Add Points", 18, 40, 134);
 	}
-	ctx.fillStyle = "white";
-	ctx.font = "24px 'Lato'";
-	ctx.fillText("Add Points", 18, 40, 104);
 	ctx.closePath();
 }
 
@@ -197,15 +200,18 @@ function drawLockButton() {
 	ctx.beginPath();
 	if (areAnglesLocked) {
 		ctx.fillStyle = "blue";
-		ctx.fillRect(150, 10, 150, 40);
+		ctx.fillRect(180, 10, 170, 40);
+		ctx.fillStyle = "white";
+		ctx.font = "24px 'Lato'";
+		ctx.fillText("Lock Angles ✓", 188, 40, 150);
 	}
 	else {
 		ctx.fillStyle = "red";
-		ctx.fillRect(150, 10, 150, 40);
+		ctx.fillRect(180, 10, 170, 40);
+		ctx.fillStyle = "white";
+		ctx.font = "24px 'Lato'";
+		ctx.fillText("Lock Angles", 188, 40, 150);
 	}
-	ctx.fillStyle = "white";
-	ctx.font = "24px 'Lato'";
-	ctx.fillText("Lock Angles", 158, 40, 130);
 	ctx.closePath();
 }
 
@@ -343,7 +349,7 @@ function findIntersection(A, B) {
 	return null;
 }
 
-function drawGreenPoly(A, B, intersect) {
+function drawGreenPoly(A, B, intersect) {		//should consider checking if vectors from intersection to A and B intersect other edges
 	var a_index, b_index;
 	for (var i = 0; i < PV.length; i++) {
 		if (a.x == A.x && a.y == A.y) {
