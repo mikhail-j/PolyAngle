@@ -146,6 +146,12 @@ function handle_click_mouse_event(event){
 				drawPointButton();
 			}
 		}
+		if (event.offsetY < 50 && event.offsetY > 10) {
+			if (event.offsetX > 150 && event.offsetX < 300) {
+				areAnglesLocked = !areAnglesLocked;
+				drawLockButton();
+			}
+		}
 	}
 	debug_mouse_event(event);
 }
@@ -156,6 +162,7 @@ function debug_mouse_event(event){
 }
 
 function drawPointButton() {
+	ctx.beginPath();
 	if (addPoints) {
 		ctx.fillStyle = "blue";
 		ctx.fillRect(10, 10, 120, 40);
@@ -167,7 +174,23 @@ function drawPointButton() {
 	ctx.fillStyle = "white";
 	ctx.font = "24px 'Lato'";
 	ctx.fillText("Add Points", 18, 40, 104);
-	ctx.fillStyle = "black";
+	ctx.closePath();
+}
+
+function drawLockButton() {
+	ctx.beginPath();
+	if (areAnglesLocked) {
+		ctx.fillStyle = "blue";
+		ctx.fillRect(150, 10, 150, 40);
+	}
+	else {
+		ctx.fillStyle = "red";
+		ctx.fillRect(150, 10, 150, 40);
+	}
+	ctx.fillStyle = "white";
+	ctx.font = "24px 'Lato'";
+	ctx.fillText("Lock Angles", 158, 40, 130);
+	ctx.closePath();
 }
 
 function drawBounds() {
@@ -353,7 +376,9 @@ function renderPolyVertices() {
 	drawPolyFigure();
 	drawBounds();
 	drawPointButton();
+	drawLockButton();
 }
 
 drawBounds();
 drawPointButton();
+drawLockButton();
