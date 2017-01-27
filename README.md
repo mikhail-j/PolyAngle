@@ -12,3 +12,7 @@ Each newly created vertex has a ray pointing at the right direction. These direc
 ##License
 
 The license can be found in 'LICENSE'.
+
+#Acknowledgements
+
+The idea of this project was given to me from Professor Alan Siegel of NYU.
