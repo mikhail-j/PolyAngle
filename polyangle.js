@@ -230,26 +230,28 @@ function drawPolyFigure() {
 }
 
 function drawIntersectingArea() {
-	for (var i = 0; i < PV.length; i++) {			//this checks non-consecutive edge intersection
-		for (var j = 0; j < PV.length; j++) {
-			if (i != j) {
-				var third_point = findIntersection(PV[i], PV[j]);
-				if (third_point !== null) {
-					drawGreenTriangle(PV[i], PV[j], third_point);
-				}
-			}
-		}
-	}
-	//for (var i = 1; i < PV.length; i++) {			//this checks consecutive edge intersection
-	//	var third_point = findIntersection(PV[i], PV[i - 1]);
-	//	if (third_point !== null) {
-	//		drawGreenTriangle(PV[i], PV[i - 1], third_point);
+	//for (var i = 0; i < PV.length; i++) {			//this checks non-consecutive edge intersection
+	//	for (var j = 0; j < PV.length; j++) {
+	//		if (i != j) {
+	//			var third_point = findIntersection(PV[i], PV[j]);
+	//			if (third_point !== null) {
+	//				drawGreenTriangle(PV[i], PV[j], third_point);
+	//			}
+	//		}
 	//	}
 	//}
-	//var third_point = findIntersection(PV[0], PV[PV.length - 1]);
-	//if (third_point !== null) {
-	//	drawGreenTriangle(PV[0], PV[PV.length - 1], third_point);
-	//}
+
+
+	for (var i = 1; i < PV.length; i++) {			//this checks consecutive edge intersection
+		var third_point = findIntersection(PV[i], PV[i - 1]);
+		if (third_point !== null) {
+			drawGreenTriangle(PV[i], PV[i - 1], third_point);
+		}
+	}
+	var third_point = findIntersection(PV[0], PV[PV.length - 1]);
+	if (third_point !== null) {
+		drawGreenTriangle(PV[0], PV[PV.length - 1], third_point);
+	}
 }
 
 function findIntersection(A, B) {
@@ -339,6 +341,18 @@ function findIntersection(A, B) {
 		}
 	}
 	return null;
+}
+
+function drawGreenPoly(A, B, intersect) {
+	var a_index, b_index;
+	for (var i = 0; i < PV.length; i++) {
+		if (a.x == A.x && a.y == A.y) {
+			a_index = i;
+		}
+		if (b.x == B.x && b.y == B.y) {
+			b_index = i;
+		}
+	}
 }
 
 function drawGreenTriangle(A, B, C) {
