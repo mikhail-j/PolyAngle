@@ -98,6 +98,23 @@ function AnchorPoint(x, y) {
 	this.pv = null;
 }
 
+function Vec3(x, y, z) {
+	this.x = x;
+	this.y = y;
+	this.z = z;
+}
+
+function cross_product_vec3(a, b) {
+	return new Vec3((a.y*b.z)-(a.z*b.y),(a.z*b.x)-(a.x*b.z),(a.x*b.y)-(a.y*b.x));
+}
+
+function magnitude_vec3(v) {
+	return Math.sqrt((v.x*v.x) + (v.y*v.y) + (v.z*v.z));
+}
+function magnitude_vec2(v) {
+	return Math.sqrt((v.x*v.x) + (v.y*v.y));
+}
+
 function handle_mouse_down_event(event) {
 	if (!addPoints && !arePointsLocked) {
 		console.log("addPoints: " + addPoints + " arePointsLocked: " + arePointsLocked);
@@ -173,8 +190,145 @@ function drawPolyFigure() {
 	ctx.closePath();
 }
 
+function drawIntersectingArea() {
+	for (var i = 1; i < PV.length; i++) {
+		var pA = PV[i];
+		var pB = PV[i-1];
+		var dA = pA.angle;	//radian form
+		var dB = pB.angle;	//radian form
+		var Ay = Math.sin(dA);
+		var Ax = Math.cos(dA);
+		var By = Math.sin(dB);
+		var Bx = Math.cos(dB);
+		var bdAx = pB.x - pA.x;
+		var bdAy = pB.y - pA.y;
+		var bdBx = pA.x - pB.x;
+		var bdBy = pA.y - pB.y;
+		//var bdA = Math.atan2(pB.y - pA.y, pB.x - pA.x);		//angle of vector from A to B
+		//var bdB = Math.atan2(pA.y - pB.y, pA.x - pB.x);		//angle of vector from B to A
+		//var aA = Math.abs(bdA-dA);
+		//var aB = Math.abs(bdB-dB);
+		var aA = Math.abs(Math.acos(((Ax*bdAx) + (Ay*bdAy))/((Math.sqrt((Ax*Ax) + (Ay*Ay)) * (Math.sqrt((bdAx*bdAx) + (bdAy*bdAy)))))));
+		var aB = Math.abs(Math.acos(((Bx*bdBx) + (By*bdBy))/((Math.sqrt((Bx*Bx) + (By*By)) * (Math.sqrt((bdBx*bdBx) + (bdBy*bdBy)))))));
+		if (aA + aB < Math.PI) {		//we have a triangle
+			console.log("found triangle! A rad: " + aA * (180/Math.PI) + " B rad: " + aB * (180/Math.PI));
+			console.log("A rad: " + 
+				(magnitude_vec3(cross_product_vec3(new Vec3(Ax, Ay, 0), new Vec3(bdAx,bdAy, 0)))/(magnitude_vec2(new AnchorPoint(Ax, Ay))*magnitude_vec2(new AnchorPoint(bdAx,bdAy)))) +
+				" A deg: " + 
+				Math.asin(magnitude_vec3(cross_product_vec3(new Vec3(Ax, Ay, 0), new Vec3(bdAx,bdAy, 0)))/(magnitude_vec2(new AnchorPoint(Ax, Ay))*magnitude_vec2(new AnchorPoint(bdAx,bdAy)))) * (180/Math.PI) +
+				" A x bdA: " +
+				(magnitude_vec3(cross_product_vec3(new Vec3(Ax, Ay, 0), new Vec3(bdAx,bdAy, 0)))) + 
+				" |A|: " +
+				(magnitude_vec2(new AnchorPoint(Ax, Ay))) + 
+				" |B|: " +
+				(magnitude_vec2(new AnchorPoint(bdAx,bdAy))) + 
+				" B rad: " + 
+				(magnitude_vec3(cross_product_vec3(new Vec3(bdBx, bdBy, 0), new Vec3(Bx, By, 0)))/
+					(magnitude_vec2(new AnchorPoint(bdBx, bdBy))*magnitude_vec2(new AnchorPoint(Bx, By))))+
+				" B deg: " + 
+				Math.asin(magnitude_vec3(cross_product_vec3(new Vec3(bdBx, bdBy, 0), new Vec3(Bx, By, 0)))/
+					(magnitude_vec2(new AnchorPoint(bdBx, bdBy))*magnitude_vec2(new AnchorPoint(Bx, By)))) * (180/Math.PI));
+			if (Ay != 0) {
+				var slope = Ax/Ay;
+				//if (slope != 0 && ((pA.x - (slope * pA.y)) - (pB.x - (slope * pB.y)))/(Bx - (slope * By)) > 0) {
+				if (slope != 0) {
+					var B_multiple = ((pA.x - (slope * pA.y)) - (pB.x - (slope * pB.y)))/(Bx - (slope * By));
+					var intersection = new AnchorPoint(pB.x + (B_multiple * Bx), pB.y + (B_multiple * By));
+					var Am0 = ((pB.x + (B_multiple * Bx)) - pA.x)/Ax;
+					if (Am0 >= 0 && B_multiple >= 0) {
+						drawGreenTriangle(pA, pB, intersection);
+					}
+				}
+			}
+			else if (By != 0) {
+				var slope = Bx/By;
+				//if (slope != 0 && (((pB.x - (slope * pB.y)) - (pA.x - (slope * pA.y)))/(Ax - (slope * Ay))) > 0) {
+				if (slope != 0) {
+					var A_multiple = ((pB.x - (slope * pB.y)) - (pA.x - (slope * pA.y)))/(Ax - (slope * Ay));
+					var intersection = new AnchorPoint(pA.x + (A_multiple * Ax), pA.y + (A_multiple * Ay));
+					if (Bm0 >= 0 &&  A_multiple >= 0) {
+						drawGreenTriangle(pA, pB, intersection);
+					}
+				}
+			}
+		}
+	}
+
+		var pA = PV[0];
+		var pB = PV[PV.length-1];
+		var dA = pA.angle;	//radian form
+		var dB = pB.angle;	//radian form
+		var Ay = Math.sin(dA);
+		var Ax = Math.cos(dA);
+		var By = Math.sin(dB);
+		var Bx = Math.cos(dB);
+		var bdAx = pB.x - pA.x;
+		var bdAy = pB.y - pA.y;
+		var bdBx = pA.x - pB.x;
+		var bdBy = pA.y - pB.y;
+		//var bdA = Math.atan2(pB.y - pA.y, pB.x - pA.x);		//angle of vector from A to B
+		//var bdB = Math.atan2(pA.y - pB.y, pA.x - pB.x);		//angle of vector from B to A
+		//var aA = Math.abs(bdA-dA);
+		//var aB = Math.abs(bdB-dB);
+		var aA = Math.abs(Math.acos(((Ax*bdAx) + (Ay*bdAy))/((Math.sqrt((Ax*Ax) + (Ay*Ay)) * (Math.sqrt((bdAx*bdAx) + (bdAy*bdAy)))))));
+		var aB = Math.abs(Math.acos(((Bx*bdBx) + (By*bdBy))/((Math.sqrt((Bx*Bx) + (By*By)) * (Math.sqrt((bdBx*bdBx) + (bdBy*bdBy)))))));
+		if (aA + aB < Math.PI) {		//we have a triangle
+			console.log("found triangle! A rad: " + aA * (180/Math.PI) + " B rad: " + aB * (180/Math.PI));
+			console.log("A rad: " + 
+				(magnitude_vec3(cross_product_vec3(new Vec3(Ax, Ay, 0), new Vec3(bdAx,bdAy, 0)))/(magnitude_vec2(new AnchorPoint(Ax, Ay))*magnitude_vec2(new AnchorPoint(bdAx,bdAy)))) +
+				" A deg: " + 
+				Math.asin(magnitude_vec3(cross_product_vec3(new Vec3(Ax, Ay, 0), new Vec3(bdAx,bdAy, 0)))/(magnitude_vec2(new AnchorPoint(Ax, Ay))*magnitude_vec2(new AnchorPoint(bdAx,bdAy)))) * (180/Math.PI) +
+				" A x bdA: " +
+				(magnitude_vec3(cross_product_vec3(new Vec3(Ax, Ay, 0), new Vec3(bdAx,bdAy, 0)))) + 
+				" |A|: " +
+				(magnitude_vec2(new AnchorPoint(Ax, Ay))) + 
+				" |B|: " +
+				(magnitude_vec2(new AnchorPoint(bdAx,bdAy))) + 
+				" B rad: " + 
+				(magnitude_vec3(cross_product_vec3(new Vec3(bdBx, bdBy, 0), new Vec3(Bx, By, 0)))/
+					(magnitude_vec2(new AnchorPoint(bdBx, bdBy))*magnitude_vec2(new AnchorPoint(Bx, By))))+
+				" B deg: " + 
+				Math.asin(magnitude_vec3(cross_product_vec3(new Vec3(bdBx, bdBy, 0), new Vec3(Bx, By, 0)))/
+					(magnitude_vec2(new AnchorPoint(bdBx, bdBy))*magnitude_vec2(new AnchorPoint(Bx, By)))) * (180/Math.PI));
+			if (Ay != 0) {
+				var slope = Ax/Ay;
+				if (slope != 0) {
+					var B_multiple = ((pA.x - (slope * pA.y)) - (pB.x - (slope * pB.y)))/(Bx - (slope * By));
+					var intersection = new AnchorPoint(pB.x + (B_multiple * Bx), pB.y + (B_multiple * By));
+					var Am0 = ((pB.x + (B_multiple * Bx)) - pA.x)/Ax;
+					if (Am0 >= 0 && B_multiple >= 0) {
+						drawGreenTriangle(pA, pB, intersection);
+					}
+				}
+			}
+			else if (By != 0) {
+				var slope = Bx/By;
+				if (slope != 0) {
+					var A_multiple = ((pB.x - (slope * pB.y)) - (pA.x - (slope * pA.y)))/(Ax - (slope * Ay));
+					var intersection = new AnchorPoint(pA.x + (A_multiple * Ax), pA.y + (A_multiple * Ay));
+					var Bm0 = ((pA.x + (A_multiple * Ax)) - pB.x)/Bx;
+					if (Bm0 >= 0 &&  A_multiple >= 0) {
+						drawGreenTriangle(pA, pB, intersection);
+					}
+				}
+			}
+		}
+}
+
+function drawGreenTriangle(A, B, C) {
+	ctx.beginPath()
+	ctx.fillStyle = "green";
+	ctx.moveTo(A.x, A.y);
+	ctx.lineTo(B.x, B.y);
+	ctx.lineTo(C.x, C.y);
+	ctx.lineTo(A.x, A.y);
+	ctx.fill();
+	ctx.closePath()
+}
+
 function renderPolyVertices() {
 	ctx.clearRect(0, 0, 1280, 720);
+	drawIntersectingArea();
 	for (var i = 0; i < PV.length; i++) {
 		ctx.beginPath();
 		//ctx.ellipse(event.clientX, event.clientY, 2, 2, 0, 0, 2 * Math.PI);
