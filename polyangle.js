@@ -21,6 +21,8 @@ var moving_poly_vertex = null;
 
 var moving_anchor = null;
 
+var anchorMoved = [];
+
 function update_current_position(event) {
 	currentPosition.x = event.offsetX;
 	currentPosition.y = event.offsetY;
@@ -145,6 +147,12 @@ function handle_mouse_down_event(event) {
 }
 
 function handle_mouse_up_event(event) {
+	if (moving_anchor !== null) {
+		anchorMoved.push(1);
+	}
+	if (moving_poly_vertex !== null) {
+		anchorMoved.push(1);
+	}
 	moving_poly_vertex = null;
 	moving_anchor = null;
 }
@@ -154,16 +162,19 @@ function handle_click_mouse_event(event){
 	if (event.offsetY > 60 && addPoints && !check_declared_points(tmp_vtx) && !check_declared_anchor(tmp_vtx)) {		//don't allow y-coordinates to be too high
 		PV.push(tmp_vtx);
 		renderPolyVertices();
+		if (PV.length >= 2) {
+			anchorMoved.push(1);
+		}
 	}
 	else {
 		if (event.offsetY < 50 && event.offsetY > 10) {
-			if (event.offsetX > 10 && event.offsetX < 130) {
+			if (event.offsetX > 10 && event.offsetX < 160) {
 				addPoints = !addPoints;
 				drawPointButton();
 			}
 		}
 		if (event.offsetY < 50 && event.offsetY > 10) {
-			if (event.offsetX > 150 && event.offsetX < 300) {
+			if (event.offsetX > 180 && event.offsetX < 350) {
 				areAnglesLocked = !areAnglesLocked;
 				drawLockButton();
 			}
@@ -219,6 +230,7 @@ function drawBounds() {
 	ctx.beginPath();
 	ctx.fillStyle = "#e2e2e2";
 	ctx.fillRect(0, 0, 1280, 60);
+	ctx.fill();
 	ctx.fillStyle = "white";
 	ctx.closePath();
 }
@@ -349,21 +361,10 @@ function findIntersection(A, B) {
 	return null;
 }
 
-function drawGreenPoly(A, B, intersect) {		//should consider checking if vectors from intersection to A and B intersect other edges
-	var a_index, b_index;
-	for (var i = 0; i < PV.length; i++) {
-		if (a.x == A.x && a.y == A.y) {
-			a_index = i;
-		}
-		if (b.x == B.x && b.y == B.y) {
-			b_index = i;
-		}
-	}
-}
-
 function drawGreenTriangle(A, B, C) {
 	ctx.beginPath()
-	ctx.fillStyle = "green";
+	//ctx.fillStyle = "green";
+	ctx.fillStyle = "rgba(0, 255, 0, 0.6)";
 	ctx.moveTo(A.x, A.y);
 	ctx.lineTo(B.x, B.y);
 	ctx.lineTo(C.x, C.y);
