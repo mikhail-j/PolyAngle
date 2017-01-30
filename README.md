@@ -4,6 +4,8 @@
 
 #####PolyAngle is a interactive polygon HTML5 demo written in Javascript.
 
+You can view the demo [here](https://mikhail-j.github.io/PolyAngle/).
+
 ##Usage
 
 This demo allows the user to interactively create and manipulate points for a polygon on the HTML5 canvas.
