@@ -162,8 +162,8 @@ function dynamicCircleApproximation() {
 	else {
 		negative = 1;
 	}
-
-	while ((Math.abs((2 * Math.PI) - getMax(vertexAngles)) > 0.015) && circle_radius > 1) {
+	var counter = 0;
+	while ((Math.abs((2 * Math.PI) - getMax(vertexAngles)) > 0.01) && circle_radius > 1 && counter < 10000) {	//counter over 10000 is basically infinite loop
 		circle_radius = circle_radius - (stepsize * negative);
 		incrementEdge();
 		if (((2 * Math.PI) - getMax(vertexAngles)) < 0) {		//the circle radius is too small for our polygon
@@ -179,8 +179,9 @@ function dynamicCircleApproximation() {
 			negative = 1;
 		}
 		console.log("angle missing: " + ((2 * Math.PI) - getMax(vertexAngles)) + " radius: " + circle_radius);
+		counter = counter + 1;
 	}
-	console.log("out of loop! radius: " + circle_radius);
+	console.log("out of loop! radius: " + circle_radius + " counter: " + counter);
 }
 
 function incrementEdge() {
