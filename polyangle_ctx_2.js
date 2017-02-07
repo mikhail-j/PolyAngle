@@ -7,7 +7,7 @@ var num_vertices = null;
 
 var radiusDamage = false;
 
-var central_angle = 0.0;		//zero radians
+var CV = [];		//circumscribed polygon vertices
 
 var vertexAngles = [];			//central angles
 
@@ -17,6 +17,11 @@ canvas.addEventListener("mouseup", handle_ctx_mouse_event_ctx2);
 
 function handleAnchor () {				//delay this function
 	anchorMoved.pop();
+}
+
+function Vec2(ax, ay) {
+	this.x = ax;
+	this.y = ay;
 }
 
 function computeEdgeLengths() {
@@ -117,7 +122,8 @@ function computeCentralAngle(cr, v0, v1) {
 function dynamicCircleApproximation() {
 	circle_radius = .5 * getMax(edgeLengths);	//the circle needs to contain the edge, otherwise the circle is too small
 
-	var stepsize = .01;
+	//var stepsize = .01;
+	var stepsize = Math.pow(.1, Math.sqrt(Math.log(getMax(edgeLengths))*0.43429448190325176));
 	var negative = -1;			//start the approximation by increasing the radius
 	var angle_configuration;
 	var best_diff = null;
@@ -152,6 +158,7 @@ function dynamicCircleApproximation() {
 		}
 	}
 	console.log("out of loop! radius: " + circle_radius + " counter: " + counter);
+	setCircleVertices();
 }
 
 function minimizeCircle() {
@@ -162,7 +169,6 @@ function minimizeCircle() {
 	if (radiusDamage) {
 
 		if (PV.length <= 2) {
-			central_angle = 0;
 			radiusDamage = false;
 		}
 		else if (PV.length === 3) {
@@ -270,6 +276,13 @@ function computeConfigSum(angle_array, arrangement) {		//calculate sum by arrang
 	return sum;
 }
 
+function setCircleVertices() {
+	CV = [];
+	for (var i = 0; i < vertexAngles.length - 1; i++) {
+		CV.push(new Vec2(Math.cos(vertexAngles[i])*circle_radius, Math.sin(vertexAngles[i]) * circle_radius));
+	}
+}
+
 function drawBoundingCircle() {
 	ctx2.beginPath();
 	ctx2.strokeStyle = "black";
@@ -282,16 +295,27 @@ function drawEdges() {
 	for (var i = 1; i < vertexAngles.length; i++) {
 		ctx2.beginPath();
 		ctx2.strokeStyle = "black";
-		ctx2.moveTo((1280 * 0.5) + (circle_radius * Math.cos(vertexAngles[i - 1])), (720 * 0.5) - (circle_radius * Math.sin(vertexAngles[i - 1])));
-		ctx2.lineTo((1280 * 0.5) + (circle_radius * Math.cos(vertexAngles[i])), (720 * 0.5) - (circle_radius * Math.sin(vertexAngles[i])));
+		ctx2.moveTo((1280 * 0.5) + (circle_radius * Math.cos(vertexAngles[i - 1])), (720 * 0.5) + (circle_radius * Math.sin(vertexAngles[i - 1])));
+		ctx2.lineTo((1280 * 0.5) + (circle_radius * Math.cos(vertexAngles[i])), (720 * 0.5) + (circle_radius * Math.sin(vertexAngles[i])));
 		ctx2.stroke();
 		ctx2.closePath();
 	}
+}
 
+function drawRadii() {
+	for (var i = 0; i < CV.length; i++) {
+		ctx2.beginPath();
+		ctx2.strokeStyle = "#ff9a16";
+		ctx2.moveTo((1280 * 0.5) + CV[i].x, (720 * 0.5) + CV[i].y);
+		ctx2.lineTo((1280 * 0.5), (720 * 0.5));
+		ctx2.stroke();
+		ctx2.closePath();
+	}
 }
 
 function renderSecondCtxFigure() {
 	ctx2.clearRect(0, 0, 1280, 720);
 	drawBoundingCircle();
 	drawEdges();
+	drawRadii();
 }
