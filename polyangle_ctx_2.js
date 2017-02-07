@@ -158,104 +158,52 @@ function dynamicEdgeApproximation(cr, ca, v0, v1) {
 function computeCentralAngle(cr, v0, v1) {
 	var edge_dist = norm_vec2(v0.x, v1.x, v0.y, v1.y);		//original points selected with mouse clicks
 	var edge_angle;
-	//if ((2 * cr) < edge_dist) {
-	//	edge_angle = 4 * Math.PI;
-	//}
-	//else {
-		edge_angle = Math.acos((((2 * cr * cr) - (edge_dist * edge_dist))/(2*cr))/cr);
-	//}
+	edge_angle = Math.acos((((2 * cr * cr) - (edge_dist * edge_dist))/(2*cr))/cr);
 	//console.log("edge angle: " + edge_angle + " edge length: " + edge_dist);
 	return edge_angle;
 }
 
 function dynamicCircleApproximation() {
-	//incrementEdge();
+	//incrementEdge()
 	circle_radius = .5 * getMax(edgeLengths);	//the circle needs to contain the edge, otherwise the circle is too small
 
-	//var stepsize = 10;
 	var stepsize = .01;
 	var negative = -1;			//start the approximation by increasing the radius
 	var angle_configuration;
+	var best_diff = null;
 
 	angle_configuration = checkPossibleAngleConfigurations();	//compute the best of 2^(n sides) combinations
 	var counter = 0;
+	if (angle_configuration.sum !== NaN) {
+		best_diff = Math.abs((2 * Math.PI) - angle_configuration.sum);
+	}
 	//while ((Math.abs((2 * Math.PI) - getMax(vertexAngles)) > 0.01) && circle_radius > 1 && counter < 10000) {	//counter over 10000 is basically infinite loopwhile ((Math.abs((2 * Math.PI) - getMax(vertexAngles)) > 0.01) && circle_radius > 1) {	//counter over 10000 is basically infinite loop
 	while (circle_radius > 1 && counter < 10000) {	//counter over 10000 is basically infinite loopwhile ((Math.abs((2 * Math.PI) - getMax(vertexAngles)) > 0.01) && circle_radius > 1) {	//counter over 10000 is basically infinite loop
 		circle_radius = circle_radius - (stepsize * negative);
 		angle_configuration = checkPossibleAngleConfigurations();
-		//var resetCircleRadius = incrementEdge();
-		//if (resetCircleRadius) {		//the edge is larger than the diameter
-		//	circle_radius = .5 * getMax(edgeLengths);
-		//	negative = -1;
-		//	stepsize = 1;
-		//}
-	//	if (getMax(vertexAngles) === NaN) {
-	//		negative = -1;
-	//		stepsize = 1;
-	//		circle_radius = .5 * getMax(edgeLengths);
-	//	}
-	//	else {
-	//		//if (((2 * Math.PI) - getMax(vertexAngles)) < 0) {		//the circle radius is too small for our polygon
-	//		if (((2 * Math.PI) - angle_configuration.sum) < 0) {		//the circle radius is too small for our polygon
-	//			if (negative !== -1) {
-	//				stepsize = stepsize * 0.5;
-	//			}
-	//			negative = -1;
-	//		}
-	//		else {
-	//			if (negative !== 1) {
-	//				stepsize = stepsize * 0.5;
-	//			}
-	//			negative = 1;
-	//		}
-	//	}
+		if (angle_configuration.sum !== NaN) {
+			var new_diff = Math.abs((2 * Math.PI) - angle_configuration.sum);
+			if (best_diff === null) {
+				best_diff = new_diff;
+			}
+			else if (best_diff > new_diff) {
+				best_diff = new_diff;
+			}
+			else if (best_diff < new_diff) {
+				negative = -negative;
+				stepsize = stepsize * .5;
+			}
+		}
+
 		setAngleConfiguration(angle_configuration);
-		console.log("angle missing: " + ((2 * Math.PI) - getMax(vertexAngles)) + " radius: " + circle_radius + " config: " + angle_configuration.config);
+		//console.log("angle missing: " + ((2 * Math.PI) - getMax(vertexAngles)) + " radius: " + circle_radius + " config: " + angle_configuration.config);
+		console.log("angle missing: " + best_diff + " radius: " + circle_radius + " config: " + angle_configuration.config);
 		counter = counter + 1;
-		if ((Math.abs((2 * Math.PI) - angle_configuration.sum) < 0.01)) {
+		if ((Math.abs((2 * Math.PI) - angle_configuration.sum) < 0.000001)) {
 			break;
 		}
 	}
 	console.log("out of loop! radius: " + circle_radius + " counter: " + counter);
-}
-
-function incrementEdge() {
-	var isCircleSmall = false;			//the circle needs to contain the edge, otherwise the circle is too small
-
-	central_angle = 0.0;		//compute the best of 2^(n sides) combinations
-	//vertexAngles = [0.0];
-	vertexAngles = [0.0];
-	edgeLengths = [];
-	for (var i = 1; i < PV.length; i++) {
-		//if (!isCircleSmall) {
-			if (norm_vec2(PV[i].x, PV[i-1].x, PV[i].y, PV[i-1].y) > (2 * circle_radius)){
-				isCircleSmall = true;
-			}
-		//	else {
-				//var edge_angle = dynamicEdgeApproximation(circle_radius, central_angle, PV[i], PV[i-1]);
-				var edge_angle = computeCentralAngle(circle_radius, PV[i], PV[i-1]);
-				central_angle = central_angle + edge_angle;
-				vertexAngles.push(central_angle);
-				//vertexAngles.push(edge_angle);
-			//}
-			edgeLengths.push(norm_vec2(PV[i].x, PV[i-1].x, PV[i].y, PV[i-1].y));
-		//}
-	}
-	//if (!isCircleSmall) {
-		if (norm_vec2(PV[0].x, PV[PV.length - 1].x, PV[0].y, PV[PV.length-1].y) > (2 * circle_radius)){
-			isCircleSmall = true;
-		}
-		//else {
-			//var edge_angle = dynamicEdgeApproximation(circle_radius, central_angle, PV[0], PV[PV.length - 1]);
-			var edge_angle = computeCentralAngle(circle_radius, PV[0], PV[PV.length - 1]);
-			central_angle = central_angle + edge_angle;
-			vertexAngles.push(central_angle);
-			//vertexAngles.push(edge_angle);
-		//}
-		edgeLengths.push(norm_vec2(PV[0].x, PV[PV.length-1].x, PV[0].y, PV[PV.length-1].y));
-	//}
-	console.log("number of vertices: " + PV.length + " angles: " + vertexAngles);
-	return isCircleSmall;
 }
 
 function minimizeCircle() {
@@ -286,15 +234,12 @@ function minimizeCircle() {
 
 function getCentralAngles() {		//(2*pi) - angle[i] should yield other possible central angle
 	var angles = [];		//this should contain n elements used to compute 2^(n sides) combinations
-	//edgeLengths = [];
 	for (var i = 1; i < PV.length; i++) {
 		var edge_angle = computeCentralAngle(circle_radius, PV[i], PV[i-1]);
 		angles.push(edge_angle);
-		//edgeLengths.push(norm_vec2(PV[i].x, PV[i-1].x, PV[i].y, PV[i-1].y));
 	}
 	var edge_angle = computeCentralAngle(circle_radius, PV[0], PV[PV.length - 1]);
 	angles.push(edge_angle);
-	//edgeLengths.push(norm_vec2(PV[0].x, PV[PV.length-1].x, PV[0].y, PV[PV.length-1].y));
 	//console.log("angles: " + angles);
 	return angles;
 }
