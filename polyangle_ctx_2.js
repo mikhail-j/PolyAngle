@@ -106,55 +106,6 @@ function norm_vec2(ax, bx, ay, by) {
 	return Math.sqrt(((ax - bx) * (ax - bx)) + ((ay - by) * (ay - by)))
 }
 
-function dynamicEdgeApproximation(cr, ca, v0, v1) {
-	//var edge_dist = magnitude_vec2(new AnchorPoint(PV[i].x - PV[i-1].x, PV[i].y - PV[i-1].y));
-	var edge_dist = norm_vec2(v0.x, v1.x, v0.y, v1.y);
-	var edge_angle = 0.0;
-	var nx = cr * Math.cos(edge_angle + ca);
-	var ny = cr * Math.sin(edge_angle + ca);
-	var new_edge_dist = norm_vec2(nx, (cr * Math.cos(ca)), ny, (cr * Math.sin(ca)));
-
-	var stepsize = Math.PI * (1.0/360.0);
-	var negative;
-/*
-	A better idea is to start from the largest edge as a radius, increase the radius nonstop.
-	However, keep track of the radian difference (2^(n sides)) to 2*pi. If we overshoot our previous radius,
-	we change the direction we add to the circle radius.
-*/
-	if ((edge_dist - new_edge_dist) < 0) {			//the edge approximation went over the actual length
-		negative = -1;
-	}
-	else {
-		negative = 1;
-	}
-
-	while (!(Math.abs(edge_dist - new_edge_dist) < 0.001) && (2 * cr) >= edge_dist) {
-		//edge_angle = edge_angle + 0.00001;
-		edge_angle = edge_angle + (stepsize * negative);
-		nx = cr * Math.cos(edge_angle + ca);
-		ny = cr * Math.sin(edge_angle + ca);
-		new_edge_dist = norm_vec2(nx, (cr * Math.cos(ca)), ny, (cr * Math.sin(ca)));
-		if ((edge_dist - new_edge_dist) < 0) {			//the edge approximation went over the actual length
-			if (negative !== -1) {
-				stepsize = stepsize * (1.0/60.0);
-			}
-			negative = -1;
-		}
-		else {
-			if (negative !== 1) {
-				stepsize = stepsize * (1.0/60.0);
-			}
-			negative = 1;
-		}
-		//console.log("edge angle: " + edge_angle + " edge difference: " + (new_edge_dist - edge_dist));
-	}
-	//console.log("edge angle: " + edge_angle + " edge difference: " + (new_edge_dist - edge_dist));
-	if ((2 * cr) < edge_dist) {
-		edge_angle = 4 * Math.PI;
-	}
-	return edge_angle;
-}
-
 function computeCentralAngle(cr, v0, v1) {
 	var edge_dist = norm_vec2(v0.x, v1.x, v0.y, v1.y);		//original points selected with mouse clicks
 	var edge_angle;
