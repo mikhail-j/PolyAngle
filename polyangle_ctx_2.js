@@ -115,7 +115,6 @@ function computeCentralAngle(cr, v0, v1) {
 }
 
 function dynamicCircleApproximation() {
-	//incrementEdge()
 	circle_radius = .5 * getMax(edgeLengths);	//the circle needs to contain the edge, otherwise the circle is too small
 
 	var stepsize = .01;
@@ -128,7 +127,6 @@ function dynamicCircleApproximation() {
 	if (angle_configuration.sum !== NaN) {
 		best_diff = Math.abs((2 * Math.PI) - angle_configuration.sum);
 	}
-	//while ((Math.abs((2 * Math.PI) - getMax(vertexAngles)) > 0.01) && circle_radius > 1 && counter < 10000) {	//counter over 10000 is basically infinite loopwhile ((Math.abs((2 * Math.PI) - getMax(vertexAngles)) > 0.01) && circle_radius > 1) {	//counter over 10000 is basically infinite loop
 	while (circle_radius > 1 && counter < 15000) {	//counter over 15000 is basically infinite loop
 		circle_radius = circle_radius - (stepsize * negative);
 		angle_configuration = checkPossibleAngleConfigurations();
