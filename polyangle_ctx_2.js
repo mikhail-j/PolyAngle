@@ -178,7 +178,7 @@ function dynamicCircleApproximation() {
 		best_diff = Math.abs((2 * Math.PI) - angle_configuration.sum);
 	}
 	//while ((Math.abs((2 * Math.PI) - getMax(vertexAngles)) > 0.01) && circle_radius > 1 && counter < 10000) {	//counter over 10000 is basically infinite loopwhile ((Math.abs((2 * Math.PI) - getMax(vertexAngles)) > 0.01) && circle_radius > 1) {	//counter over 10000 is basically infinite loop
-	while (circle_radius > 1 && counter < 10000) {	//counter over 10000 is basically infinite loopwhile ((Math.abs((2 * Math.PI) - getMax(vertexAngles)) > 0.01) && circle_radius > 1) {	//counter over 10000 is basically infinite loop
+	while (circle_radius > 1 && counter < 15000) {	//counter over 15000 is basically infinite loop
 		circle_radius = circle_radius - (stepsize * negative);
 		angle_configuration = checkPossibleAngleConfigurations();
 		if (angle_configuration.sum !== NaN) {
@@ -191,13 +191,12 @@ function dynamicCircleApproximation() {
 			}
 			else if (best_diff < new_diff) {
 				negative = -negative;
-				stepsize = stepsize * .5;
+				stepsize = stepsize * .75;
 			}
 		}
 
 		setAngleConfiguration(angle_configuration);
-		//console.log("angle missing: " + ((2 * Math.PI) - getMax(vertexAngles)) + " radius: " + circle_radius + " config: " + angle_configuration.config);
-		console.log("angle missing: " + best_diff + " radius: " + circle_radius + " config: " + angle_configuration.config);
+		//console.log("angle missing: " + best_diff + " radius: " + circle_radius + " config: " + angle_configuration.config);
 		counter = counter + 1;
 		if ((Math.abs((2 * Math.PI) - angle_configuration.sum) < 0.000001)) {
 			break;
@@ -255,7 +254,7 @@ function checkPossibleAngleConfigurations() {
 	var solution = new AngleConfig(radians);
 
 	sumAngles(radians, -1, 0.0, solution, "");		//solution.config will have incorrect configurations if NaN occurs from edges that don't fit in the circle
-	console.log("best sum: " + solution.sum + " angles: " + solution.config + "\nradians: " + radians);
+	//console.log("best sum: " + solution.sum + " angles: " + solution.config + "\nradians: " + radians);
 
 	return solution;
 }
@@ -272,7 +271,7 @@ function setAngleConfiguration(anglecfg) {
 		}
 		vertexAngles.push(c_angle);
 	}
-	console.log("number of vertices: " + PV.length + " angles: " + vertexAngles);
+	//console.log("number of vertices: " + PV.length + " angles: " + vertexAngles);
 }
 
 function sumAngles(angle_array, index, angle_sum, angle_config, history) {		//have a object field store best sum, check when index = angle_array.length
