@@ -23,9 +23,9 @@ function computeEdgeLengths() {
 	edgeLengths = [];
 	if (PV.length > 2) {
 		for (var i = 1; i < PV.length; i++) {
-			edgeLengths.push(magnitude_vec2(new AnchorPoint(PV[i].x - PV[i-1].x, PV[i].y - PV[i-1].y)));
+			edgeLengths.push(norm_vec2(PV[i].x, PV[i-1].x, PV[i].y, PV[i-1].y));
 		}
-		edgeLengths.push(magnitude_vec2(new AnchorPoint(PV[0].x - PV[PV.length - 1].x, PV[0].y - PV[PV.length - 1].y)));
+		edgeLengths.push(norm_vec2(PV[0].x, PV[PV.length - 1].x, PV[0].y, PV[PV.length - 1].y));
 	}
 }
 
@@ -48,7 +48,7 @@ function getLargestDistance() {		//whether it is a edge or a diagonal
 }
 
 function computeCircumscribedTriangle() {
-	computeEdgeLengths();
+	//computeEdgeLengths();
 	var a = edgeLengths[0];
 	var b = edgeLengths[1];
 	var c = edgeLengths[2];
@@ -74,11 +74,12 @@ function handle_ctx_mouse_event_ctx2(event) {
 		radiusDamage = true;
 		if (large_radius === null) {
 			num_vertices = PV.length;
-			large_radius = getLargestDistance();
+			//large_radius = getLargestDistance();
+			large_radius = new_radius * .5;
 			circle_radius = large_radius;
 		}
 		else if (num_vertices !== PV.length) {
-			large_radius = new_radius;
+			large_radius = new_radius * .5;
 			circle_radius = large_radius;
 			num_vertices = PV.length;
 		}
@@ -115,7 +116,11 @@ function dynamicEdgeApproximation(cr, ca, v0, v1) {
 
 	var stepsize = Math.PI * (1.0/360.0);
 	var negative;
-
+/*
+	A better idea is to start from the largest edge as a radius, increase the radius nonstop.
+	However, keep track of the radian difference (2^(n sides)) to 2*pi. If we overshoot our previous radius,
+	we change the direction we add to the circle radius.
+*/
 	if ((edge_dist - new_edge_dist) < 0) {			//the edge approximation went over the actual length
 		negative = -1;
 	}
@@ -150,60 +155,113 @@ function dynamicEdgeApproximation(cr, ca, v0, v1) {
 	return edge_angle;
 }
 
+function computeCentralAngle(cr, v0, v1) {
+	var edge_dist = norm_vec2(v0.x, v1.x, v0.y, v1.y);		//original points selected with mouse clicks
+	var edge_angle;
+	//if ((2 * cr) < edge_dist) {
+	//	edge_angle = 4 * Math.PI;
+	//}
+	//else {
+		edge_angle = Math.acos((((2 * cr * cr) - (edge_dist * edge_dist))/(2*cr))/cr);
+	//}
+	//console.log("edge angle: " + edge_angle + " edge length: " + edge_dist);
+	return edge_angle;
+}
+
 function dynamicCircleApproximation() {
-	incrementEdge();
+	//incrementEdge();
+	circle_radius = .5 * getMax(edgeLengths);	//the circle needs to contain the edge, otherwise the circle is too small
 
-	var stepsize = 10;
-	var negative;
+	//var stepsize = 10;
+	var stepsize = .01;
+	var negative = -1;			//start the approximation by increasing the radius
+	var angle_configuration;
 
-	if (((2 * Math.PI) - getMax(vertexAngles)) < 0) {		//the circle radius is too small for our polygon
-		negative = -1;
-	}
-	else {
-		negative = 1;
-	}
+	angle_configuration = checkPossibleAngleConfigurations();	//compute the best of 2^(n sides) combinations
 	var counter = 0;
-	while ((Math.abs((2 * Math.PI) - getMax(vertexAngles)) > 0.01) && circle_radius > 1 && counter < 10000) {	//counter over 10000 is basically infinite loop
+	//while ((Math.abs((2 * Math.PI) - getMax(vertexAngles)) > 0.01) && circle_radius > 1 && counter < 10000) {	//counter over 10000 is basically infinite loopwhile ((Math.abs((2 * Math.PI) - getMax(vertexAngles)) > 0.01) && circle_radius > 1) {	//counter over 10000 is basically infinite loop
+	while (circle_radius > 1 && counter < 10000) {	//counter over 10000 is basically infinite loopwhile ((Math.abs((2 * Math.PI) - getMax(vertexAngles)) > 0.01) && circle_radius > 1) {	//counter over 10000 is basically infinite loop
 		circle_radius = circle_radius - (stepsize * negative);
-		incrementEdge();
-		if (((2 * Math.PI) - getMax(vertexAngles)) < 0) {		//the circle radius is too small for our polygon
-			if (negative !== -1) {
-				stepsize = stepsize * 0.5;
-			}
-			negative = -1;
-		}
-		else {
-			if (negative !== 1) {
-				stepsize = stepsize * 0.5;
-			}
-			negative = 1;
-		}
-		console.log("angle missing: " + ((2 * Math.PI) - getMax(vertexAngles)) + " radius: " + circle_radius);
+		angle_configuration = checkPossibleAngleConfigurations();
+		//var resetCircleRadius = incrementEdge();
+		//if (resetCircleRadius) {		//the edge is larger than the diameter
+		//	circle_radius = .5 * getMax(edgeLengths);
+		//	negative = -1;
+		//	stepsize = 1;
+		//}
+	//	if (getMax(vertexAngles) === NaN) {
+	//		negative = -1;
+	//		stepsize = 1;
+	//		circle_radius = .5 * getMax(edgeLengths);
+	//	}
+	//	else {
+	//		//if (((2 * Math.PI) - getMax(vertexAngles)) < 0) {		//the circle radius is too small for our polygon
+	//		if (((2 * Math.PI) - angle_configuration.sum) < 0) {		//the circle radius is too small for our polygon
+	//			if (negative !== -1) {
+	//				stepsize = stepsize * 0.5;
+	//			}
+	//			negative = -1;
+	//		}
+	//		else {
+	//			if (negative !== 1) {
+	//				stepsize = stepsize * 0.5;
+	//			}
+	//			negative = 1;
+	//		}
+	//	}
+		setAngleConfiguration(angle_configuration);
+		console.log("angle missing: " + ((2 * Math.PI) - getMax(vertexAngles)) + " radius: " + circle_radius + " config: " + angle_configuration.config);
 		counter = counter + 1;
+		if ((Math.abs((2 * Math.PI) - angle_configuration.sum) < 0.01)) {
+			break;
+		}
 	}
 	console.log("out of loop! radius: " + circle_radius + " counter: " + counter);
 }
 
 function incrementEdge() {
-	central_angle = 0.0;
+	var isCircleSmall = false;			//the circle needs to contain the edge, otherwise the circle is too small
+
+	central_angle = 0.0;		//compute the best of 2^(n sides) combinations
+	//vertexAngles = [0.0];
 	vertexAngles = [0.0];
 	edgeLengths = [];
 	for (var i = 1; i < PV.length; i++) {
-		var edge_angle = dynamicEdgeApproximation(circle_radius, central_angle, PV[i], PV[i-1]);
-		central_angle = central_angle + edge_angle;
-		vertexAngles.push(central_angle);
-		edgeLengths.push(norm_vec2(PV[i].x, PV[i-1].x, PV[i].y, PV[i-1].y));
-		//drawEdges();
+		//if (!isCircleSmall) {
+			if (norm_vec2(PV[i].x, PV[i-1].x, PV[i].y, PV[i-1].y) > (2 * circle_radius)){
+				isCircleSmall = true;
+			}
+		//	else {
+				//var edge_angle = dynamicEdgeApproximation(circle_radius, central_angle, PV[i], PV[i-1]);
+				var edge_angle = computeCentralAngle(circle_radius, PV[i], PV[i-1]);
+				central_angle = central_angle + edge_angle;
+				vertexAngles.push(central_angle);
+				//vertexAngles.push(edge_angle);
+			//}
+			edgeLengths.push(norm_vec2(PV[i].x, PV[i-1].x, PV[i].y, PV[i-1].y));
+		//}
 	}
-	var edge_angle = dynamicEdgeApproximation(circle_radius, central_angle, PV[0], PV[PV.length - 1]);
-	central_angle = central_angle + edge_angle;
-	vertexAngles.push(central_angle);
-	edgeLengths.push(norm_vec2(PV[0].x, PV[PV.length-1].x, PV[0].y, PV[PV.length-1].y));
-	//drawEdges();
+	//if (!isCircleSmall) {
+		if (norm_vec2(PV[0].x, PV[PV.length - 1].x, PV[0].y, PV[PV.length-1].y) > (2 * circle_radius)){
+			isCircleSmall = true;
+		}
+		//else {
+			//var edge_angle = dynamicEdgeApproximation(circle_radius, central_angle, PV[0], PV[PV.length - 1]);
+			var edge_angle = computeCentralAngle(circle_radius, PV[0], PV[PV.length - 1]);
+			central_angle = central_angle + edge_angle;
+			vertexAngles.push(central_angle);
+			//vertexAngles.push(edge_angle);
+		//}
+		edgeLengths.push(norm_vec2(PV[0].x, PV[PV.length-1].x, PV[0].y, PV[PV.length-1].y));
+	//}
+	console.log("number of vertices: " + PV.length + " angles: " + vertexAngles);
+	return isCircleSmall;
 }
 
 function minimizeCircle() {
 	renderSecondCtxFigure();
+
+	computeEdgeLengths();
 	//if (radiusDamage && PV.length > 2) {
 	if (radiusDamage) {
 
@@ -224,6 +282,99 @@ function minimizeCircle() {
 			radiusDamage = false;
 		}
 	}
+}
+
+function getCentralAngles() {		//(2*pi) - angle[i] should yield other possible central angle
+	var angles = [];		//this should contain n elements used to compute 2^(n sides) combinations
+	//edgeLengths = [];
+	for (var i = 1; i < PV.length; i++) {
+		var edge_angle = computeCentralAngle(circle_radius, PV[i], PV[i-1]);
+		angles.push(edge_angle);
+		//edgeLengths.push(norm_vec2(PV[i].x, PV[i-1].x, PV[i].y, PV[i-1].y));
+	}
+	var edge_angle = computeCentralAngle(circle_radius, PV[0], PV[PV.length - 1]);
+	angles.push(edge_angle);
+	//edgeLengths.push(norm_vec2(PV[0].x, PV[PV.length-1].x, PV[0].y, PV[PV.length-1].y));
+	//console.log("angles: " + angles);
+	return angles;
+}
+
+function AngleConfig(angle_array) {
+	this.angle = angle_array;
+	this.sum = null;
+	this.config = null;			//should refect whether edge was theta or (2 * pi) - theta in a string form
+}
+
+function checkPossibleAngleConfigurations() {
+	var radians = getCentralAngles();
+	var solution = new AngleConfig(radians);
+
+	sumAngles(radians, -1, 0.0, solution, "");		//solution.config will have incorrect configurations if NaN occurs from edges that don't fit in the circle
+	console.log("best sum: " + solution.sum + " angles: " + solution.config + "\nradians: " + radians);
+
+	return solution;
+}
+
+function setAngleConfiguration(anglecfg) {
+	vertexAngles = [0.0];
+	var c_angle = 0.0;
+	for (var i = 0; i < anglecfg.angle.length; i++) {
+		if (parseInt(anglecfg.config[i], 10) === 0) {
+			c_angle = c_angle + anglecfg.angle[i];
+		}
+		else if (parseInt(anglecfg.config[i], 10) === 1) {
+			c_angle = c_angle + ((2 * Math.PI) - anglecfg.angle[i]);
+		}
+		vertexAngles.push(c_angle);
+	}
+	console.log("number of vertices: " + PV.length + " angles: " + vertexAngles);
+}
+
+function sumAngles(angle_array, index, angle_sum, angle_config, history) {		//have a object field store best sum, check when index = angle_array.length
+	
+	var new_sum = 0.0;		//resort to zero when index is -1
+
+	if (index !== -1) {
+		if (parseInt(history[history.length - 1], 10) === 0) {
+			new_sum = angle_sum + angle_array[index];
+		}
+		else if (parseInt(history[history.length - 1], 10) === 1) {
+			new_sum = angle_sum + ((2 * Math.PI) - angle_array[index]);
+		}
+	}
+
+	if (history.length === angle_array.length && angle_array.length > 0) {
+		//var history_sum = computeConfigSum(angle_array, history);
+		if (angle_config.config === null) {
+			angle_config.config = history;
+			angle_config.sum = new_sum;
+		}
+		else {		//config and sum has been set
+			var best_diff = Math.abs((2 * Math.PI) - angle_config.sum);
+			var new_diff = Math.abs((2 * Math.PI) - new_sum);
+			if (new_diff < best_diff) {
+				angle_config.config = history;
+				angle_config.sum = new_sum;
+			}
+		}
+	}
+	else if (history.length < angle_array.length) {
+		sumAngles(angle_array, index + 1, new_sum, angle_config, history + Number(0).toString());
+		sumAngles(angle_array, index + 1, new_sum, angle_config, history + Number(1).toString());
+	}
+}
+
+function computeConfigSum(angle_array, arrangement) {		//calculate sum by arrangement
+	var sum = 0.0;
+	for (var i = 0; i < angle_array.length; i++) {
+		if (parseInt(arrangement[i], 10) === 0) {
+			sum = sum + angle_array[i];
+		}
+		else if (parseInt(arrangement[i], 10) === 1) {
+			sum = sum + ((2 * Math.PI) - angle_array[i]);
+		}
+	}
+	return sum;
 }
 
 function drawBoundingCircle() {
