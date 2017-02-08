@@ -313,9 +313,21 @@ function drawRadii() {
 	}
 }
 
+
+function drawCircumscribedPolygonVertexIndex() {
+	for (var i = 0; i < CV.length; i++) {
+		ctx2.beginPath();
+		ctx2.fillStyle = "black";
+		ctx2.font = "32px 'Lato'";
+		ctx2.fillText(Number(i).toString(), (1280 * 0.5) + CV[i].x, (720 * 0.5) + CV[i].y, 60);
+		ctx2.closePath();
+	}
+}
+
 function renderSecondCtxFigure() {
 	ctx2.clearRect(0, 0, 1280, 720);
 	drawBoundingCircle();
 	drawEdges();
 	drawRadii();
+	drawCircumscribedPolygonVertexIndex();
 }

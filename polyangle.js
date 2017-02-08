@@ -207,6 +207,16 @@ function drawPointButton() {
 	ctx.closePath();
 }
 
+function drawPolyVertexIndex() {
+	for (var i = 0; i < PV.length; i++) {
+		ctx.beginPath();
+		ctx.fillStyle = "black";
+		ctx.font = "32px 'Lato'";
+		ctx.fillText(Number(i).toString(), PV[i].x, PV[i].y, 60);
+		ctx.closePath();
+	}
+}
+
 function drawLockButton() {
 	ctx.beginPath();
 	if (areAnglesLocked) {
@@ -398,6 +408,7 @@ function renderPolyVertices() {
 		ctx.closePath();
 	}
 	drawPolyFigure();
+	drawPolyVertexIndex();
 	drawBounds();
 	drawPointButton();
 	drawLockButton();
