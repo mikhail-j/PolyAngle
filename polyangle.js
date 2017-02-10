@@ -108,6 +108,7 @@ function PolyVertex(x, y) {		//PolyVertex contains the fields necessary to draw 
 	this.angle = 0;		//in radians
 	this.anchor = new AnchorPoint(15, 0);		//x and y component vectors
 	this.anchor.pv = this;
+	this.circumcircle_vector = null;		//not yet computed
 }
 
 function AnchorPoint(x, y) {
@@ -409,6 +410,9 @@ function renderPolyVertices() {
 	}
 	drawPolyFigure();
 	drawPolyVertexIndex();
+	if (CV !== null && CV.length > 0) {		//compute circumcircle vectors first!
+		drawTranslatedVector();			//draw to first canvas
+	}
 	drawBounds();
 	drawPointButton();
 	drawLockButton();

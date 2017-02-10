@@ -283,6 +283,20 @@ function setCircleVertices() {
 	}
 }
 
+function flipVertical() {
+	for (var i = 0; i < vertexAngles.length - 1; i++) {
+		vertexAngle[i] = (2 * Math.PI) - vertexAngle[i];
+	}
+	//setCircleVertices();
+}
+
+function flipHorizontal() {
+	for (var i = 0; i < vertexAngles.length - 1; i++) {
+		vertexAngle[i] = Math.PI - vertexAngle[i];
+	}
+	//setCircleVertices();
+}
+
 function drawBoundingCircle() {
 	ctx2.beginPath();
 	ctx2.strokeStyle = "black";
@@ -313,6 +327,27 @@ function drawRadii() {
 	}
 }
 
+function setCircumcircleVector() {
+	for (var i = 0; i < PV.length; i++) {
+		if (PV[i].circumcircle_vector === null) {
+			PV[i].circumcircle_vector = new Vec2(NaN, NaN);
+		}
+		PV[i].circumcircle_vector.x = -CV[i].x;
+		PV[i].circumcircle_vector.y = -CV[i].y;
+	}
+}
+
+function drawTranslatedVector() {
+	setCircumcircleVector();
+	for (var i = 0; i < PV.length; i++) {
+		ctx.beginPath();
+		ctx.strokeStyle = "#ff9a16";
+		ctx.moveTo(PV[i].x, PV[i].y);
+		ctx.lineTo(PV[i].x + PV[i].circumcircle_vector.x, PV[i].y + PV[i].circumcircle_vector.y);
+		ctx.stroke();
+		ctx.closePath();
+	}
+}
 
 function drawCircumscribedPolygonVertexIndex() {
 	for (var i = 0; i < CV.length; i++) {
