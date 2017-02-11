@@ -332,8 +332,10 @@ function setCircumcircleVector() {
 		if (PV[i].circumcircle_vector === null) {
 			PV[i].circumcircle_vector = new Vec2(NaN, NaN);
 		}
-		PV[i].circumcircle_vector.x = -CV[i].x;
-		PV[i].circumcircle_vector.y = -CV[i].y;
+		if (typeof(CV[i]) !== "undefined") {
+			PV[i].circumcircle_vector.x = -CV[i].x;
+			PV[i].circumcircle_vector.y = -CV[i].y;
+		}
 	}
 }
 
